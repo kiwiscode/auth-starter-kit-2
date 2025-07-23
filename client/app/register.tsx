@@ -38,10 +38,6 @@ export default function RegisterScreen() {
     }
   };
 
-  if (authLoading || user) {
-    return null;
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Join Us</Text>
