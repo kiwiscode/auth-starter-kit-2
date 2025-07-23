@@ -39,7 +39,7 @@ exports.register = async (req, res, next) => {
       );
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Email verification token ve expire oluştur
+    // Create email verification token and expire
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
     const emailVerificationExpire = oneYearFromNow();
     const user = await User.create({
@@ -52,7 +52,7 @@ exports.register = async (req, res, next) => {
     });
     const { accessToken, refreshToken } = generateTokens(user);
 
-    // Email verification linki gönder
+    // Send email verification link
     const verifyUrl = `${FRONTEND_URL}/verify-email/${emailVerificationToken}`;
     await sendEmail({
       to: user.email,
