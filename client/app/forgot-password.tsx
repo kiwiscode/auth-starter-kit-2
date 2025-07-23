@@ -1,37 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth } from "@/context/AuthContext";
+import api from "@/constants/axiosConfig";
 
-export default function LoginScreen() {
-  const router = useRouter();
-  const { login, user, loading: authLoading } = useAuth();
+const ForgotPasswordScreen: React.FC = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.replace("/profile");
-    }
-  }, [authLoading, user, router]);
-
-  const handleLogin = async () => {
+  const handleForgotPassword = async () => {
     setLoading(true);
     setError("");
+    setMessage("");
     try {
-      await login(email, password);
-      router.replace("/profile");
+      const res = await api.post("/auth/forgot-password", { email });
+      setMessage(
+        res.data.message ||
+          "If this email is registered, password reset instructions have been sent."
+      );
+      setTimeout(() => {
+        router.replace("/login");
+      }, 3000);
     } catch (err: any) {
-      setError(err?.response?.data?.error || "Login failed");
+      setError(err?.response?.data?.error || "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,10 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.title}>Forgot Password</Text>
+      <Text style={styles.info}>
+        Enter your email address to receive password reset instructions.
+      </Text>
       <TextInput
         placeholder="Email"
         value={email}
@@ -49,44 +52,30 @@ export default function LoginScreen() {
         style={styles.input}
         placeholderTextColor="#888"
       />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-        placeholderTextColor="#888"
-      />
-      <TouchableOpacity
-        onPress={() => router.push("/forgot-password")}
-        style={{ alignSelf: "flex-end", marginBottom: 8 }}
-      >
-        <Text style={{ color: "#007AFF", fontSize: 15 }}>Forgot Password?</Text>
-      </TouchableOpacity>
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {message ? <Text style={styles.success}>{message}</Text> : null}
       <TouchableOpacity
         style={styles.button}
-        onPress={handleLogin}
-        disabled={loading}
+        onPress={handleForgotPassword}
+        disabled={loading || !email}
         activeOpacity={0.8}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Sign In</Text>
+          <Text style={styles.buttonText}>Send Reset Link</Text>
         )}
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => router.push("/register")}
+        onPress={() => router.replace("/login")}
         style={styles.linkButton}
       >
-        <Text style={styles.linkText}>
-          Don&apos;t have an account? Register
-        </Text>
+        <Text style={styles.linkText}>Back to Login</Text>
       </TouchableOpacity>
     </View>
   );
-}
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -95,11 +84,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   title: {
-    marginBottom: 24,
-    fontSize: 28,
+    marginBottom: 16,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#222",
     textAlign: "left",
+  },
+  info: {
+    fontSize: 15,
+    color: "#555",
+    marginBottom: 16,
   },
   input: {
     borderWidth: 1,
@@ -128,6 +122,10 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 8,
   },
+  success: {
+    color: "green",
+    marginBottom: 8,
+  },
   linkButton: {
     marginTop: 8,
     alignItems: "flex-start",
@@ -137,3 +135,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
+
+export default ForgotPasswordScreen;
